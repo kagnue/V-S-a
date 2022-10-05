@@ -1,0 +1,39 @@
+
+
+FilePond.registerPlugin(FilePondPluginImagePreview,FilePondPluginFileValidateType,FilePondPluginFileValidateSize);
+
+let b = FilePond.create(
+  document.querySelector('.filepond'),{
+    allowMultiple:true,
+    name:'filepond[]',
+    imagePreviewMaxHeight:100,
+    acceptedFileTypes:['image/png','image/gif', 'image/tiff', 'image/png', 'image/jpeg', 'image/jpg'],
+    maxFileSize:"10MB",
+  }
+)
+
+document.addEventListener('FilePond:updatefiles',addFileToQrCodeInputGallery)
+document.addEventListener('FilePond:reorderfiles',addFileToQrCodeInputGallery)
+// document.addEventListener('FilePond:updatefiles',addFileToQrCodeInputGallery)
+
+
+
+
+ function addFileToQrCodeInputGallery () {
+   let itemCounter = document.querySelector('.fileItem span')
+  if(b.getFiles().length > 0){
+    var dt = new DataTransfer();
+    b.getFiles().forEach((item)=> item.file.size < 10000000 && dt.items.add(item.file))
+    var file_list = dt.files;
+    document.querySelector('#dropZone').files = file_list
+   }else{
+    document.querySelector('#dropZone').value=''
+   }
+   if(b.getFiles().length < 20){
+    itemCounter.innerHTML=`${b.getFiles().length}`
+    itemCounter.style.color = '#999'
+   }else{
+    itemCounter.innerHTML=` MAX LIMIT`
+    itemCounter.style.color = 'red'
+   }
+ }

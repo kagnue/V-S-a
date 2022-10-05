@@ -1,0 +1,930 @@
+// $.getScript("/assets/js/qr-generator/qr-canvas-svg.js", function () {
+//
+// });
+let dumpDoubleCheckOfConversion = true;
+let qrBackgroundName = 'no_image';
+let qrLogoName = 'no_logo';
+/**
+ * @type {FormData}
+ */
+let lastFormData = null;
+let lastActionUrl = null;
+let qrPreviewSocialLogo = $('.qr-preview-social-logo');
+let uploadedFiles = [];
+const MAX_FILE_SIZE_IMAGE = 10485760;
+const MAX_SUMMARY_SIZE_IMAGE = 31457280;
+let clickForDefaultBorderLogo = document.querySelector('.logo-border');
+let inputCounts = 0;
+
+function linkChangeAction(textArea) {
+    let textAreaValue = textArea.val();
+    if (textAreaValue !== '') {
+        if (textAreaValue === 'https:/') {
+            textArea.val('https://');
+        } else if (textAreaValue === 'http:/') {
+            textArea.val('http://');
+        } else if (
+            textAreaValue.indexOf('http://') === -1 &&
+            textAreaValue.indexOf('https://') === -1
+        ) {
+            textArea.val('https://' + textAreaValue);
+        }
+        qrPreviewSocialLogo.removeClass('active');
+        $('#qr-preview-logo-remove').addClass('no-logo__active ');
+        endGenerateSvg && clickForDefaultBorderLogo.click();
+
+        $(qrPreviewSocialLogo).each(function () {
+            if (textAreaValue.indexOf($(this).data('type')) > -1) {
+                $(this).addClass('active');
+                $('#qr-preview-logo-remove').removeClass('no-logo__active ');
+            }
+        });
+    }
+}
+
+// $('.background-image-selector').click(function () {
+//   $('.background-image-selector').removeClass('active-background');
+//   qrBackgroundName = $(this).data('ga-name');
+//   $(this).addClass('active-background');
+//   drawQR();
+//   $('#close1').click();
+// });
+qrPreviewSocialLogo.click(function () {
+    $('#qr-preview-social-logo-container img').removeClass('active');
+    $(this).addClass('active');
+
+    $('#qr-file-selector').val('');
+
+    qrLogoName = $(this).data('type');
+
+    $('#qr-preview-logo-remove').removeClass('no-logo__active ');
+
+  generateQRCode()
+  drawQR();
+});
+
+$('#qr-preview-logo-remove').click(function () {
+    $(this).addClass('no-logo__active ');
+
+    endGenerateSvg && clickForDefaultBorderLogo.click();
+
+    $('#qr-preview-social-logo-container img').removeClass('active');
+    $('#qr-file-selector').val('');
+    generateQRCode();
+});
+
+$('#qr-file-selector').change(function () {
+    $('#qr-preview-social-logo-container img').removeClass('active');
+    $('#qr-preview-logo-remove').removeClass('no-logo__active ');
+    generateQRCode();
+});
+
+$('.qrcode').each(function () {
+  let newQr = new QRCodeStyling({data:$(this).data('link')})
+  newQr.append(this);
+});
+
+generateQRCode();
+
+$('.nav-link').click(function () {
+    uploadedFiles = [];
+    $('.image-inputs').html('');
+    $('.image-blocks').html('');
+    $('.description-names').html('');
+    $('.create-qr-image-preview').addClass('d-none');
+    $('.download-icon').removeClass('d-none');
+    $('.description-conditions').removeClass('d-none');
+});
+
+function uploadImage(input) {
+     var inputImage = null;
+        var uploadedFile = input.get(0).files
+        for (var i = 0; i < uploadedFile.length; i++) {
+            // if (i !== 1) {
+            //     inputCounts = processAdditionalFile(inputCounts);
+            // }
+            inputCounts = processAdditionalFile(inputCounts);
+            inputImage = $('#qr-data-tab-container .active').find(
+                "[data-id='" + inputCounts + "']"
+            );
+            uploadNewImagesToPack(inputImage, uploadedFile[i]);
+        }
+        $('.image-inputs').children().remove();
+        
+    // if (
+    //     input.hasClass('file-input-gallery') &&
+    //     $('.file-input-gallery').get(0).files.length <= 1
+    // ) {
+    //     var inputImage = null;
+    //     var files = $('.file-input-gallery').get(0).files;
+    //     for (var i = 0; i < files.length; i++) {
+    //         if (i !== 1) {
+    //             inputCounts = processAdditionalFile(inputCounts);
+    //         }
+    //         inputImage = $('#qr-data-tab-container .active').find(
+    //             "[data-id='" + inputCounts + "']"
+    //         );
+    //         uploadNewImagesToPack(inputImage, files[i]);
+    //     }
+    //     $('.image-inputs').children().remove();
+    //     console.log(1)
+    // } 
+    // else if (input.hasClass('image-input')) {
+    //     console.log(2)
+    //     var uploadedFile = input.get(0).files[0];
+    //     uploadNewImagesToPack(input, uploadedFile);
+    // } else {
+    //     console.log(3)
+    //     var uploadedFile = input.get(0).files[0];
+    //     uploadNewImagesToPack(input, uploadedFile);
+    //     // uploadSimpleImage(input);
+    // }
+}
+
+// function uploadSimpleImage(input) {
+//     let image = $('.tab-pane.active').find('.create-qr-image-preview');
+//     let icon = $('.tab-pane.active').find('.download-icon');
+//     let fileinfo = input.parent().parent().find('#description-upload');
+//     let downloadConditions = input
+//         .parent()
+//         .parent()
+//         .find('.description-conditions');
+//     downloadConditions.addClass('d-none');
+//     fileinfo.empty();
+//     let file = input.get(0).files[0];
+//     if (file) {
+//         file.id = 1;
+//         if (uploadedFiles.length === 0 && file.size < MAX_FILE_SIZE_IMAGE) {
+//             uploadedFiles.push(file);
+//         }
+//         if (file.size < MAX_FILE_SIZE_IMAGE) {
+//             if (uploadedFiles.length === 0) {
+//                 uploadedFiles.push(file);
+//             }
+//             $('.upload-file-btn-more').removeClass('d-none');
+//             $('.upload-file-btn-single').addClass('d-none');
+//         }
+//         var reader = new FileReader();
+//         var extension = getExtension(file.name);
+//         reader.onload = function () {
+//             fileinfo.empty();
+//             fileinfo.append('<p>' + file.name + '</p>');
+//             if (extension === 'tiff' || extension === 'tif') {
+//                 processTiffFile(reader, file);
+//                 $('#file-download-icon-gallery').addClass('d-none');
+//             } else {
+//                 image.attr('src', reader.result);
+//                 image.removeClass('d-none');
+//                 icon.addClass('d-none');
+//             }
+//         };
+//         if (extension === 'tiff' || extension === 'tif') {
+//             reader.readAsArrayBuffer(file);
+//         } else {
+//             reader.readAsDataURL(file);
+//         }
+//       progressBarListener(reader);
+//     }
+// }
+
+function uploadNewImagesToPack(input, uploadFile) {
+    if (uploadedFiles.length < 20) {
+        if (uploadFile.size >= MAX_FILE_SIZE_IMAGE) {
+            $('#too-large-modal').modal('show');
+            $('#img-wrap-' + input.data('id')).remove();
+            var removedImages = [];
+            removedImages.push($('#removedImages').val());
+            removedImages.push(input.data('id'));
+            $('#removedImages').val(removedImages);
+            input.remove();
+            return 0;
+        }
+        let fileinfo = input.parent().parent().find('#description-upload');
+        let downloadConditions = input
+            .parent()
+            .parent()
+            .find('.description-conditions');
+        downloadConditions.addClass('d-none');
+        fileinfo.empty();
+        uploadFile.id = input.data('id');
+        uploadedFiles.push(uploadFile);
+        $('.file-download-image').removeClass('d-none');
+        for (var j = 0; j < uploadedFiles.length; j++) {
+            var file = uploadedFiles[j];
+            var reader = new FileReader();
+            fileinfo.append(
+                "<p id='file-info-" + file.id + "'>" + file.name + '</p>'
+            );
+            var extension = getExtension(file.name);
+            reader.onload = function () {
+                
+                if (extension === 'tiff' || extension === 'tif') {
+                    processTiffFile(reader, file);
+                    // if (j === 1) {
+                    //     $('#file-download-icon-gallery').addClass('d-none');
+                    // }
+                } 
+                // else if (
+                   
+                //     j === 1 &&
+                //     $('.create-qr-image-preview-gallery').attr('src') === ''
+                // ) {
+                //     $('.create-qr-image-preview-gallery').attr('src', reader.result);
+                //     $('.create-qr-image-preview-gallery').removeClass('d-none');
+                //     $('#file-download-icon-gallery').addClass('d-none');
+                //     console.log('первый одиночный')
+                // } 
+                else {
+                    var imageOnPack = $('.image-blocks').find(
+                        '#file-download-icon-' + file.id
+                    );
+                    imageOnPack.attr('src', reader.result);
+                    $('.img-wrap ').removeClass('d-none');
+                }
+            };
+            if (extension === 'tiff' || extension === 'tif') {
+                reader.readAsArrayBuffer(file);
+            } else {
+                reader.readAsDataURL(file);
+            }
+            progressBarListener(reader);
+        }
+    }
+}
+
+function processTiffFile(reader, file)
+{
+    $.getScript("/assets/js/plugins/tiff.min.js", function () {
+        var tiff = new Tiff({buffer: reader.result});
+        var canvas = tiff.toCanvas();
+        canvas.setAttribute('id', uploadedFiles.length);
+        if ($("#img-tiff-wrap-"+uploadedFiles.length).length < 1) {
+            var wrapId = uploadedFiles.length-1;
+            if ($('.create-qr-image-preview-gallery').attr("src") === "") {
+                $('.create-qr-image-preview').remove();
+                canvas.classList.add('create-qr-image-preview-gallery');
+                $(".create-qr-image-preview-gallery-wrap").append(canvas);
+            } else {
+                $("#img-wrap-"+wrapId).empty();
+                $("#img-wrap-"+wrapId).append("<span class='close'>&times;</span>");
+                $("#img-wrap-"+wrapId).append(canvas);
+            }
+        }
+        $('.img-wrap').removeClass('d-none');
+    });
+}
+
+function getExtension(filename)
+{
+    var filenameArr = filename.split(".");
+    return filenameArr[filenameArr.length - 1];
+}
+
+//IF QR code exists
+$('#exists-qr-modal-create-btn').click(function () {
+    lastFormData.append('forceCreate', 'true');
+    $.ajax({
+        type: 'POST',
+        url: lastActionUrl,
+        data: lastFormData,
+        success: function (data) {
+            document.querySelector('#qrcode').dataset.link =
+                data.url;
+            generateQRCode();
+            $('#loading-qr-container').addClass('d-none');
+            $('#preview-container').removeClass('d-none');
+        },
+        cache: false,
+        contentType: false,
+        processData: false,
+    });
+});
+
+function isImage() {
+    return $('#jpg').hasClass('active show') || $('#png').hasClass('active show');
+}
+
+function isFile() {
+    return (
+        $('#pdfBtn').hasClass('active') ||
+        $('#vCardFile').hasClass('active') ||
+        $('#pcrFile').hasClass('active') ||
+        $('#audio').hasClass('active') ||
+        $('#pptx').hasClass('active')
+    );
+}
+
+function isGallery() {
+    return $('#gallery').hasClass('active show');
+}
+$(".entry_form_vcard").submit(function(e) {
+    e.preventDefault(); // avoid to execute the actual submit of the form.
+    var form = $(this);
+    $.ajax({
+        type: "POST",
+        url: '/entry/ajax/vcard/create',
+        data: form.serialize(), // serializes the form's elements.
+        success: function(data)
+        {
+            var btnVCARDEntity = $('#sendFileBTNVCARDEntity');
+            if(data.error === "The file storage for this user is full") {
+                $('#storage-size-exceeded').modal('show');
+                btnVCARDEntity.addClass('disabled');
+            } else {
+                btnVCARDEntity.removeClass('disabled');
+            }
+        }
+    });
+});
+
+$("#sendFileBTNVCARDEntity").click(function (e) {
+    e.preventDefault(); // avoid to execute the actual submit of the form.
+    var form = $("#vCardForm");
+    $.ajax({
+        type: "POST",
+        url: '/entry/ajax/vcard/create',
+        data: form.serialize(), // serializes the form's elements.
+        success: function (data) {
+            var btnVCARDEntity = $('#sendFileBTNVCARDEntity');
+            if (data.errors) {
+                let $text = '';
+                const warningDiv = $('#whatsAppWarning');
+                data.errors.forEach(function (error) {
+                    $text += error + '<br/>';
+                });
+                document.getElementById('errors').innerHTML = $text;
+                warningDiv.removeClass('d-none');
+                return 0;
+            }
+            if (data.error === "The file storage for this user is full") {
+                $('#storage-size-exceeded').modal('show');
+                btnVCARDEntity.addClass('disabled');
+                return 0;
+            }
+            btnVCARDEntity.removeClass('disabled');
+            $('input[name=entry_hash]').val(data.hash);
+            $('input[name=entry_id]').val(data.id);
+            if (window.innerWidth < 1200) {
+                $('#qr-preview-section-col').removeClass('d-none');
+                $('#qr-create-section-col').addClass('d-none');
+            }
+            document.querySelector('#qrcode').dataset.link = data.url;
+            if(typeof data.securityHash !== 'undefined') {
+                document.querySelector('#qrcode').dataset.link += "?hp=" + data.securityHash;
+            }
+            generateQRCode();
+            $('#loading-qr-container').addClass('d-none');
+            $('#preview-container').removeClass('d-none');
+
+        }
+    });
+});
+// }
+$(document).on('change', '.file-input', function () {
+    let file = $(this).get(0).files[0];
+    const MAX_FILE_SIZE_FILE = 31457280;
+    const btnPDF = $('#sendFileBTNPDF');
+    const btnVCARD = $('#sendFileBTNVCARD');
+    const btnVCARDEntity = $('#sendFileBTNVCARDEntity');
+    const btnAudio = $('#sendAudio');
+    const btnPCR = $('#sendFileBTNPCR');
+    const btnpptx = $('#sendFileBTNPPTX');
+
+    const btnJPG = $('#sendFileBTNJPG');
+    const btnPNG = $("#sendFileBTNPNG");
+    let files = this.files[0];
+    $.ajax({
+        type: 'GET',
+        url: '/entry/file/storage_size',
+        success: function (data) {
+            if(data.storageSize !== null) {
+                var modal = $('#too-large-modal');
+                var newUsedStorageSize = files.size + data.usedStorageSize;
+                if (newUsedStorageSize >= data.storageSize) {
+                    modal = $('#storage-size-exceeded');
+                }
+                if (isImage()) {
+                    if (files.size >= MAX_FILE_SIZE_IMAGE || (newUsedStorageSize >= data.storageSize)) {
+                        if ($('#jpg').hasClass('active show')) {
+                            modal.modal('show');
+                            btnJPG.addClass('disabled');
+                        } else if ($('#png').hasClass('active show')) {
+                            modal.modal('show');
+                            btnPNG.addClass('disabled');
+                        }
+                    }
+                }
+                if (isFile()) {
+                    if (file.size >= MAX_FILE_SIZE_FILE || (newUsedStorageSize >= data.storageSize)) {
+                        if ($('#pdfBtn').hasClass('active')) {
+                            modal.modal('show');
+                            btnPDF.addClass('disabled');
+                        } else if ($('#vCardFile').hasClass('active')) {
+                            modal.modal('show');
+                            btnVCARD.addClass('disabled');
+                            btnVCARDEntity.addClass('disabled');
+                        } else if ($('#pcrFile').hasClass('active')) {
+                            modal.modal('show');
+                            btnPCR.addClass('disabled');
+                        } else if ($('#audio').hasClass('active')) {
+                            modal.modal('show');
+                            btnAudio.addClass('disabled');
+                        } else if ($('#pptx').hasClass('active')) {
+                            modal.modal('show');
+                            btnpptx.addClass('disabled');
+                        }
+                    } else {
+                        btnAudio.removeClass('disabled');
+                        btnPCR.removeClass('disabled');
+                        btnPDF.removeClass('disabled');
+                        btnVCARD.removeClass('disabled');
+                        btnVCARDEntity.removeClass('disabled');
+                        btnpptx.removeClass('disabled');
+                    }
+                }
+                if (isGallery()) {
+                    var summarySize = 0;
+                    if (uploadedFiles.length > 1) {
+                        for (var i = 0; i < uploadedFiles.length; i++) {
+                            if (typeof files !== undefined) {
+                                if (checkIsValidImageSize(uploadedFiles[i], modal, null, summarySize)) {
+                                    summarySize += uploadedFiles[i].size;
+                                }
+                            }
+                        }
+                    } else {
+                        checkIsValidImageSize(file, modal, null, summarySize);
+                    }
+                }
+            }
+        }
+    });
+});
+
+function checkIsValidImageSize(file, modal, summarySize = null, storageSize = null) {
+    if (file && file.size >= MAX_FILE_SIZE_IMAGE || (storageSize > 0 && file.size >= storageSize)) {
+        proccessInvalidFileSize(modal, file);
+    } else if (summarySize !== null && summarySize >= MAX_SUMMARY_SIZE_IMAGE) {
+        proccessInvalidFileSize($('#too-large-summary-modal'), file);
+    } else {
+        if (summarySize !== null && summarySize < MAX_SUMMARY_SIZE_IMAGE) {
+            unblockUpload();
+            return true;
+        }
+        unblockUpload();
+        return true;
+    }
+}
+
+function proccessInvalidFileSize(modal, file) {
+    modal.modal('show');
+    if (file.id === undefined) {
+        file.id = 1;
+    }
+    removeImageFromFiles(file.id);
+    blockUpload(file);
+    return false;
+}
+
+function unblockUpload() {
+    $('#sendFileBTNJPG').removeClass('disabled');
+    $('#sendFileBTNPNG').removeClass('disabled');
+    $('#sendFileBTNGallery').removeClass('disabled');
+}
+
+function blockUpload(file) {
+    if (file.type === 'image/jpeg') {
+        $('#sendFileBTNJPG').addClass('disabled');
+    } else if (file.type === 'image/png') {
+        $('#sendFileBTNPNG').addClass('disabled');
+    }
+    $('#sendFileBTNGallery').addClass('disabled');
+}
+setSubmitListener()
+function setSubmitListener(){
+    $('form').submit(function (e) {
+        e.preventDefault();
+        let userIntegration = document.getElementById('data-user-integration');
+        $('#no-qr-container').remove();
+        $('#file-save-failed-alert').addClass('d-none')
+        var isEntryForm = false;
+        if ($(this).hasClass('entry_form')) {
+            $('#loading-qr-container').removeClass('d-none');
+            isEntryForm = true;
+        }
+        $('#preview-container').addClass('d-none');
+        lastFormData = new FormData(this);
+        lastActionUrl = $(this).attr('action');
+
+
+        $.ajax({
+            type: 'POST',
+            url: lastActionUrl,
+            data: lastFormData,
+            success: function (data) {
+                if (+lastFormData.get('type') === 1){
+                    setTimeout(function () {
+                        $.ajax({
+                            type: 'GET',
+                            url: '/entry/link/parse-url-ajax/' + data.id,
+                            data: data.id,
+                        })
+                    }, 2000);
+                }
+                if (data.validationError) {
+                    $('#validation-link-error-modal').modal({ show: true });
+                    return;
+                }
+                if (data === 'File is too big') {
+                    return 0;
+                }
+
+                if (!! data.text_error){
+                    $("#textError").append(data.text_error);
+                    $("#textError").removeClass('d-none');
+                    return 0;
+                }else{
+                    $("#textError").addClass('d-none');
+                }
+
+                if (!! data.map_error){
+                    $("#mapError").html("");
+                    $("#mapError").append(data.map_error);
+                    $("#mapError").removeClass('d-none');
+                    return 0;
+                }else{
+                    $("#mapError").addClass('d-none');
+                }
+
+                if (data.errors) {
+                    let $text = '';
+                    const warningDiv = $('#whatsAppWarning');
+                    data.errors.forEach(function (error) {
+                        $text += error + '<br/>';
+                    });
+                    document.getElementById('errors').innerHTML = $text;
+                    warningDiv.removeClass('d-none');
+                    return 0;
+                }
+                $('#whatsAppWarning').addClass('d-none');
+                $('input[name=entry_hash]').val(data.hash);
+                $('input[name=entry_id]').val(data.id);
+                if (window.innerWidth < 1200) {
+                    $('#qr-preview-section-col').removeClass('d-none');
+                    $('#qr-create-section-col').addClass('d-none');
+                }
+                if(data.url === null){
+                    document.querySelector('#qrcode').dataset.link =
+                        // 'https://me-qr.com/' + data.id;
+                        'https://me-qr.com/' + data.uniqueKey;
+                }else{
+                    document.querySelector('#qrcode').dataset.link = data.url;
+                }
+                if(typeof data.securityHash !== 'undefined') {
+                    document.querySelector('#qrcode').dataset.link += "?hp=" + data.securityHash;
+                }
+                if (isEntryForm) {
+                    generateQRCode();
+                    if (!!userIntegration){
+                        setTimeout(() => {saveVisualisation()},2000);
+                    }
+                }
+                if (data.exists) {
+                    $('#exists-qr-code-modal').modal({ show: true });
+                }
+                if (data.isSended === true) {
+                    $('#new-qr-code-not-scanned').modal('toggle');
+                    $('#success-feedback').modal({ show: true });
+                }
+                $('#loading-qr-container').addClass('d-none');
+                $('#preview-container').removeClass('d-none');
+            },
+            error:function (error) {
+                if(!!JSON.parse(error.responseText).saving_file_failed){
+                    $('#file-save-failed-alert').empty().append(JSON.parse(error.responseText).saving_file_failed).removeClass('d-none');
+                }
+                if(error.responseText === 'Invalid date.') {
+                    $("#error-create-modal").modal('show');
+                    $("#error-message").text(error.responseText);
+                }
+            },
+            cache: false,
+            contentType: false,
+            processData: false,
+        });
+    });
+}
+
+let linkTextArea = $('#linkTextArea');
+linkTextArea.keypress(function () {
+    linkChangeAction($(this));
+});
+linkTextArea.keyup(function () {
+    linkChangeAction($(this));
+});
+$('#previewBlock').click(function () {
+    let qrCodeLink = document.querySelector('#qrcode').dataset.link;
+    if (qrCodeLink === undefined) {
+        if (window.innerWidth < 1200) {
+            window.location = '#qr-create-title';
+        }
+        $('#press-generate-code-modal').modal({ show: true });
+        return false;
+    }
+});
+$('#create-one-more-btn').click(function () {
+    $('#qr-preview-section-col').addClass('d-none');
+    $('#qr-create-section-col').removeClass('d-none');
+    $('html,body').scrollTop(0);
+});
+$('.app-iphone-image').click(function () {
+    gtag('event', 'app-image-click', {
+        event_category: 'app-image',
+        event_label: 'Click on application btn',
+        value: 1,
+    });
+});
+
+function facebookConversionAction() {
+    if (typeof fbq !== 'undefined') {
+        fbq('track', 'SubmitApplication');
+    }
+}
+
+function googleConversionAction() {
+    /** STARTS GOOGLE */
+    gtag('event', 'download_qr', {
+        event_category: 'download_qr',
+        event_label: 'Download QR when user not registered',
+        value: 1,
+    });
+    gtag('event', 'download_qr_' + qrBackgroundName + '_' + qrLogoName, {
+        event_category: 'download_qr',
+        event_label:
+            'Download QR when user not registered with background' +
+            qrBackgroundName +
+            ' ' +
+            qrLogoName,
+        value: 1,
+    });
+    if (dumpDoubleCheckOfConversion) {
+        gtag('event', 'conversion', {
+            send_to: 'AW-979941213/uyeoCOCN_-wBEN3uotMD',
+        });
+        dumpDoubleCheckOfConversion = false;
+    }
+    /** END GOOGLE */
+}
+
+$('.download-qr-svg-btn').click(function () {
+    // googleConversionAction();
+    var link = document.createElement('a');
+    link.download = 'qrcode.svg';
+
+    var ctx = new C2S(1000, 1000);
+
+    //grab the context from your destination canvas
+    var destCtx = ctx.getContext('2d');
+
+    //call its drawImage() function passing it the source canvas directly
+    destCtx.drawImage(document.getElementById('testCanvas'), 0, 0);
+    link.href = destCtx.getSvg();
+    link.click();
+    $('#no-qr-modal').modal('toggle');
+});
+
+$('#download-qr-btn').click(function () {
+    let qrCodeLink = document.querySelector('#qrcode').dataset.link;
+    if (qrCodeLink === undefined) {
+        // $('#press-generate-code-modal').modal({'show': true});
+        return;
+    }
+    // if ($('#qr-type-selector .active').data('type') === 1) {
+    //     $('#qr-data-tab-container .active .submit-form').trigger('click');
+    // } else {
+    var entryIdInput = $('input[name=entry_id]');
+    $.ajax({
+        type: 'GET',
+        url: '/entry/getType/' + entryIdInput.val(),
+        success: function (data) {
+            if (data.type !== 12) {
+                googleConversionAction();
+                facebookConversionAction();
+            }
+        }
+    });
+    if (entryIdInput.val()) {
+        $.ajax({
+            type: 'GET',
+            url: '/entry/makeHash/' + entryIdInput.val(),
+            success: function (data) {
+                $('input[name=entry_hash]').val(data.hash);
+                // downloadQR();
+                saveVisualisation();
+                // downloadQR();
+            }
+            // }
+        });
+    }
+});
+
+$('.upload-more-file-btn').click(function () {
+    if (uploadedFiles.length >= 1 && uploadedFiles.length < 20) {
+        $('.additional-files').each(function () {
+            if ($(this).get(0).files.length === 0) {
+                $('#img-wrap-' + $(this).data('id')).remove();
+                $(this).remove();
+            }
+        });
+        inputCounts = processAdditionalFile(inputCounts);
+        $('#qr-data-tab-container .active')
+            .find("[data-id='" + inputCounts + "']")
+            .trigger('click');
+    } else if (uploadedFiles.length !== 20) {
+        $('#qr-data-tab-container .active .file-input').trigger('click');
+    } else {
+        $('#max-images-count').modal('toggle');
+    }
+});
+
+function processAdditionalFile(inputCounts) {
+    if (inputCounts === undefined) {
+        inputCounts = 0;
+    }
+    inputCounts += 1;
+    $('.image-inputs').append(
+        '<input type="file" name="image[]" data-id="' +
+        inputCounts +
+        '" class="w-100 d-none border-0 md-textarea form-control file-input image-input additional-files" style="height: 100px" placeholder="Enter your link" required accept="image/gif, image/tiff, image/png, image/jpeg, image/jpg"/>'
+    );
+    inputCounts = $('.additional-files:last').data('id');
+    $('.image-blocks').append(
+        '<div class="img-wrap d-none" id="img-wrap-' +
+        inputCounts +
+        '" data-id="' +
+        inputCounts +
+        '"><span class="close">&times;</span><img src="/static/pages/icon-img/camera-alt.svg" class="file-download-image d-none" style="object-fit: cover;" id="file-download-icon-' +
+        inputCounts +
+        '" alt="camera" width="60" height="60"></div>'
+    );
+    return inputCounts;
+}
+
+$(document).on('click', '.img-wrap .close', function () {
+    var imageId = $(this).parent().data('id');
+    removeImageFromFiles(imageId);
+    $(this).parent().remove();
+    if(document.querySelectorAll('.img-wrap').length === 0){
+        document.querySelector('#dropZone').value=''
+    }
+    var summarySize = 0;
+    for (var i = 0; i < uploadedFiles.length; i++) {
+        summarySize += uploadedFiles[i].size;
+    }
+    checkIsValidImageSize(null, summarySize);
+});
+function removeImageFromFiles(imageId) {
+    var removedImages = [];
+    removedImages.push($('#removedImages').val());
+    removedImages.push(imageId);
+    $('#removedImages').val(removedImages);
+    $('#file-info-' + imageId).remove();
+    uploadedFiles = uploadedFiles.splice(imageId, 1);
+    $('#qr-data-tab-container .active')
+        .find("[data-id='" + imageId + "']")
+        .remove();
+}
+
+let browserUrl = window.location.href;
+let indexOfHash = browserUrl.indexOf('#');
+if (indexOfHash > 0) {
+    let hash = browserUrl.substring(indexOfHash).replace('-', '');
+    let hashTab = $('#qr-create-section-col ' + hash);
+    if (hashTab.length > 0) {
+        $('#qr-data-tab-container div').removeClass('active');
+        hashTab.addClass('active');
+        $('#qr-type-selector a').removeClass('active');
+        $('a[href="' + hash + '"]').addClass('active');
+    }
+}
+
+// function downloadQR() {
+//   var link = document.createElement('a');
+//   link.download = 'qrcode_' + $('input[name=entry_id]').val() + '_.jpg';
+//   $.getScript('/assets/js/piexifjs.js', function () {
+//     var exifIfd = {};
+//     exifIfd[piexif.ExifIFD.MakerNote] = $('input[name=entry_hash]').val();
+//     var exifObj = { Exif: exifIfd };
+//     var exifBytes = piexif.dump(exifObj);
+//     var jpegData = document
+//       .getElementById('testCanvas')
+//       .toDataURL('image/jpeg', 1.0);
+//     link.href = piexif.insert(exifBytes, jpegData);
+//     link.click();
+//     $('#no-qr-modal').modal('toggle');
+//     link.remove();
+//   });
+// }
+
+window.onresize = resizeAction;
+
+function resizeAction() {
+    if (window.innerWidth > 1200) {
+        $('#qr-create-section-col').removeClass('d-none');
+    }
+}
+
+
+function progressBarListener(reader){
+  const progressBar = document.querySelector('.progress-bar')
+  let clearInterval
+  reader.addEventListener('loadstart',function(){
+      progressBar.style.width='10%'
+  })
+  reader.addEventListener('progress',function(){
+      for(i=0; i<90;i++){
+          progressBar.style.width=`${i}%`
+      }
+  })
+  reader.addEventListener('loadend',function(){
+      progressBar.style.width='100%'
+      clearInterval = setTimeout(function(){
+          progressBar.style.width='0%'
+      },2000)
+  })
+
+
+
+  clearTimeout(clearInterval)
+
+}
+
+$("#open-storelink-form").click(function (){
+  openStoreLinkForm();
+});
+
+function openStoreLinkForm()
+{
+  $(".storelink-info").hide();
+  $(".storelink-form").show();
+}
+
+$('.upload-file-btn').click(function () {
+    if($(this).hasClass('no-auth-lock') === false) {
+        $('#qr-data-tab-container .active .file-input').trigger('click');
+    }
+});
+
+$('.no-auth-lock').click(function (){
+    var targetBack = $(this).data('target_back');
+    location.href = '/login?targetBack='+targetBack;
+});
+
+$('#imagePack .file-input').on('change', function () {
+    uploadImage($(this));
+});
+
+$(document).on('change', '.additional-files', function () {
+    uploadImage($(this));
+});
+
+$('.files-type .file-input').on('change', function () {
+    uploadFile($(this));
+});
+
+function uploadFile(input) {
+    let image = $('.tab-pane.active').find('.create-qr-image-preview');
+    let icon = $('.tab-pane.active').find('.download-icon');
+    let fileinfo = input.parent().parent().find('#description-upload');
+    let downloadConditions = input
+        .parent()
+        .parent()
+        .find('.description-conditions');
+    downloadConditions.addClass('d-none');
+    fileinfo.empty();
+    let file = input.get(0).files[0];
+    file.id = 1;
+    if (uploadedFiles.length === 0 && file.size < MAX_FILE_SIZE_IMAGE) {
+        uploadedFiles.push(file);
+    }
+    if (file.size < MAX_FILE_SIZE_IMAGE) {
+        if (uploadedFiles.length === 0) {
+            uploadedFiles.push(file);
+        }
+        $('.upload-file-btn-more').removeClass('d-none');
+        $('.upload-file-btn-single').addClass('d-none');
+    }
+    if (file) {
+        var reader = new FileReader();
+        reader.onload = function () {
+            fileinfo.empty();
+            fileinfo.append('<p>' + file.name + '</p>');
+            image.attr('src', reader.result);
+            image.removeClass('d-none');
+            icon.addClass('d-none');
+        };
+
+        reader.readAsDataURL(file);
+        progressBarListener(reader)
+    }
+}

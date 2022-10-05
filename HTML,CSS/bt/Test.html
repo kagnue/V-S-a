@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="advertise-for-family/assets/icon/themify-icons/themify-icons.css">
+    <link rel="stylesheet" href="test.css">
+    <title>Document</title>
+</head>
+<body>
+    <div id="btn">
+        <!-- <div class="btn btn--success ">
+            <div class="btn__success--icon btn-icon">
+                <i class="ti-check"></i>
+            </div>
+            <div class="btn-content"> 
+                <h2 class="heading">success</h2>
+                <p class="title">Bài thực hành Level 2</p>
+            </div>
+            <div class="btn-close">
+                <i class="ti-close"></i>
+            </div>             
+        </div>
+    </div>
+    <div id="btn">
+        <div class="btn btn--infor ">
+            <div class="btn__infor--icon btn-icon">
+                <i class="ti-info"></i>
+            </div>
+            <div class="btn-content"> 
+                <h2 class="heading">Infor</h2>
+                <p class="title">Liên hệ để biết thêm thông tin</p>
+            </div>
+            <div class="btn-close">
+                <i class="ti-close"></i>
+            </div>             
+        </div>
+    </div>
+    <div id="btn">
+        <div class="btn btn--warming ">
+            <div class="btn__warming--icon btn-icon">
+                <i class="ti-check"></i>
+            </div>
+            <div class="btn-content"> 
+                <h2 class="heading">Dangger</h2>
+                <p class="title">Cảnh báo bạn đã thực hiện lỗi 1 bước nào đó</p>
+            </div>
+            <div class="btn-close">
+                <i class="ti-close"></i>
+            </div>             
+        </div>
+    </div>
+    <div id="btn">
+        <div class="btn btn--error ">
+            <div class="btn__error--icon btn-icon">
+                <i class="ti-check"></i>
+            </div>
+            <div class="btn-content"> 
+                <h2 class="heading">error</h2>
+                <p class="title">Không tồn tại vui lòng thử lại</p>
+            </div>
+            <div class="btn-close">
+                <i class="ti-close"></i>
+            </div>             
+        </div> -->
+    </div>
+    <div>
+        <button  class="btn-success">success</button>
+        <button onclick="showInfor();">infor</button>
+
+    </div>
+
+    <script>
+
+        function btn ({
+            heading = '',
+            title = '',
+            type = '',
+            duration = 4000
+        }){
+            const main = document.getElementById('btn');
+            if (main) {
+                const icons = {
+                    success : 'ti-check',
+                    info : 'ti-info'
+                }
+                
+                const icon = icons[type];
+                const btn = document.createElement('div');
+                btn.classList.add('btn', `btn--${heading}`)
+                btn.innerHTML = `
+                <div class="btn__${heading}--icon btn-icon">
+                    <i class="${icon}"></i>
+                </div>
+                <div class="btn-content"> 
+                    <h2 class="heading">${heading}</h2>
+                    <p class="title">${title}</p>
+                </div>
+                <div class="btn-close">
+                    <i class="ti-close"></i>
+                </div>        
+                `;
+                main.appendChild(btn);
+                
+                const autoRemove = setTimeout(function (){
+                    main.removeChild(btn);
+                }, duration)
+                btn.onclick = function remove (e) {
+                    if (e.target.closest('.btn-close')){
+                        main.removeChild(btn);
+                        clearTimeout(autoRemove)
+                    }
+                }
+            }
+
+        }
+        
+        // btn ({
+        //     heading :'success' ,
+        //     title:'chuc mung' ,
+        //     type : 'success' 
+        // })
+        const buttonSuccess = document.querySelector('.btn-success');  
+        buttonSuccess.addEventListener('click', showSuccess)
+        function showSuccess(){
+            btn ({
+            heading :'success' ,
+            title:'Chúc Mừng bạn đã thành công' ,
+            type : 'success' 
+        })
+        }
+        function showInfor (){
+            btn ({
+            heading :'infor' ,
+            title:'thông tin nhóm' ,
+            type : 'info'
+        })
+        }
+    </script>
+</body>
+</html>

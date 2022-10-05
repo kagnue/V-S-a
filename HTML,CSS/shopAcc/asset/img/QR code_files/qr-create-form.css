@@ -1,0 +1,12 @@
+.bootstrap-select button {
+    font-family: Roboto, Helvetica, Arial, sans-serif;
+    padding-left: 2px !important;
+    background: none;
+    color: #AAAAAA !important;
+    text-transform: none;
+    font-size: 14px;
+}
+.togglebutton {
+    text-align: center;
+    margin-top: 6px;
+}

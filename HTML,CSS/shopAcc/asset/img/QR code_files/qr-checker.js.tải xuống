@@ -1,0 +1,20 @@
+// $(".generate-code-btn").click(function () {
+//     setTimeout(checkIsQrScanned, 60000)
+// })
+function checkIsQrScanned() {
+  var url = '/entry/' + $('input[name=entry_id]').val() + '/check-scan';
+  $.ajax({
+    type: 'GET',
+    url: url,
+    dataType: 'json',
+    success: function (data) {
+      if (data.isShow === true) {
+        showNotScannedQrPopUp();
+      }
+    },
+  });
+}
+
+function showNotScannedQrPopUp() {
+  $('#new-qr-code-not-scanned').modal({ show: true });
+}

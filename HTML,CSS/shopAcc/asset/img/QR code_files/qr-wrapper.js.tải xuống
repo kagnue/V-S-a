@@ -1,0 +1,675 @@
+var endGenerateSvg = false;
+var globalSettings = null;
+var restoredSession = null;
+if (
+  window.location.toString().includes('/entry/') &&
+  !window.location.toString().includes('/entry/new')
+) {
+  globalSettings = document.querySelector('#qrVisualization').value;
+  restoredSession = JSON.parse(globalSettings);
+
+}
+
+//global params
+var params = {
+  id: null,
+  logo: null,
+  logoSize:0.3,
+  logoMargin:0,
+  logoBackground:false,
+  link: null,
+  qrColor: '#000000',
+  qrBackgroundColor: '#ffffff',
+  qrStyle:'square',
+  qrStyleSquare:'square',
+  qrStyleDot:'square',
+  qrFrame: {backgroundColor: "#ffffff",
+  border: "translate(23.9,24)scale(0.2)",
+  gaName: "no_image",
+  globalqrColor: "#000000",
+  logoBorder: ".no-border",
+  transform: "translate(40, 41)scale(1.2)",
+  transparentBg: false,
+  cube:'.cube-pattern-one',
+  viewBox: "-15 -20"},
+  transparentBg: null,
+  changeIfLogoUpload :false,
+  isOld:false,
+};
+
+// function qr generat
+var changeResult = true; //variable for save initial qr-code
+var changeBackgroundLogo = true;
+
+if (
+  window.location.toString().includes('/entry/') &&
+  !window.location.toString().includes('/entry/new')
+) {
+  changeResult = false;
+ 
+}
+
+
+
+var preloaderQrCode = document.querySelector('.preloaderQrCode')
+//generate svg qr
+function drawQRBase(logo=params.logo, link=params.link||document.querySelector('#qrcode').dataset.link, qrColor=params.qrColor, qrBackgroundColor) {
+  
+  // preloaderQrCode.style.opacity='1'
+   var options = {
+    width: 300,
+    height: 300,
+    type: "svg",
+    data: encodeURI(link) ,
+    image: logo,
+    dotsOptions: {
+        color: qrColor,
+        type: params.qrStyle
+    },
+    cornersSquareOptions:{
+      type: params.qrStyleSquare
+    },
+    cornersDotOptions:{
+      type: params.qrStyleDot
+    },
+    backgroundOptions: {
+        color: "transparent",
+    },
+    imageOptions: {
+      imageSize:params.logoSize,
+      hideBackgroundDots:params.logoBackground,
+        // crossOrigin: "anonymous",
+        margin: params.logoMargin
+    }
+}
+  const qrCode = new QRCodeStyling(options);   
+      // normalizeLogoSize();
+qrCode.append(document.getElementById("qrcode"));
+qrCode.update(options)
+const entryID = $('input[name=entry_id]').val();
+params.id = entryID;
+// onlyInitialQrCode();
+// changeResult = false;
+endGenerateSvg = true;
+  //   onRenderingEnd: function () {
+  //     window.document.querySelector('.active-background').click();
+  //     const entryID = $('input[name=entry_id]').val();
+  //     params.id = entryID;
+  //     onlyInitialQrCode();
+  //     // changeResult = false;
+  //     endGenerateSvg = true;
+  //     drawQR();
+  //     normalizeLogoSize();
+  //   },
+  // });
+  setTimeout(()=>{drawQR()},0)
+  // setTimeout(()=>{onlyInitialQrCode()},1)
+  setTimeout(()=>{window.document.querySelector('.active-background').click()},300)
+  // setTimeout(()=>{preloaderQrCode.style.opacity='0'},1000)
+}
+    
+
+//remove and reset logo for entry page
+var resetLogotype = null;
+if (
+  window.location.toString().includes('/entry/') &&
+  !window.location.toString().includes('/entry/new')
+) {
+  params.id = restoredSession.id;
+  resetLogotype = true;
+  if(restoredSession.changeIfLogoUpload){
+    addActiveLogo(restoredSession.logo)
+  }
+} else {
+  resetLogotype = false;
+}
+var logoUploadFile;
+var removeLogoOnEntryPage = true;
+function removeLogoEntryPage() {
+  removeLogoOnEntryPage = false;
+  resetLogotype = false;
+  window.location.toString().includes('/entry/')&&
+  !window.location.toString().includes('/entry/new')
+    ? (restoredSession.logo = null)
+    : null;
+    document.querySelector('.upload-inner').classList.remove('upload-inner__active');
+    params.logo =logoUploadFile;
+}
+document
+  .querySelector('#qr-preview-logo-remove')
+  .addEventListener('click', removeLogoEntryPage);
+
+  function normalizeLogoSize(){
+    // var svgLogoImage = document.querySelector('#testSVG>svg>g>image')
+    // if(svgLogoImage){
+    //   svgLogoImage.removeAttribute("preserveAspectRatio")
+    // }
+  }
+  // function push parms for qr code generator
+function generateQRCode() {
+  
+  var qrCode = document.querySelector('#qrcode');
+  // document.querySelector('#testSVG svg') && document.querySelector('#testSVG svg').remove()
+  if (globalSettings !== null) {
+    if (restoredSession.link.search(/\?hp=/) === -1) {
+      if (restoredSession.securityHash) {
+        restoredSession.link += "?hp=" + restoredSession.securityHash;
+      }
+    }
+    drawQRBase(
+      restoredSession.logo,
+      restoredSession.link,
+      restoredSession.qrColor,
+      restoredSession.qrBackgroundColor,
+    );
+    
+  } else {
+    var link = qrCode.dataset.link;
+    if (link === undefined) {
+      return false;
+    }
+    if (
+      window.location.toString().includes('/entry/') &&
+      !window.location.toString().includes('/entry/new')
+    ) {
+      // restoredSession ? params.link = restoredSession.link:params.link = qrCode.dataset.link
+    // console.log(qrCode.dataset.link)
+      params.link = restoredSession.link;
+    
+    } else {
+      if (window.location.toString().includes('/text/')){
+        changeResult = false;
+        var textLink = JSON.parse(document.querySelector('#qrVisualization').value);
+        params.link = textLink.link
+      }else{
+        params.link = link;
+      }
+     
+    }
+    var qrBackgroundColor = document.getElementById(
+      'qr-background-color'
+    ).value;
+    params.qrBackgroundColor = qrBackgroundColor;
+    var qrColor = document.getElementById('qr-color').value;
+    params.qrColor = qrColor;
+    var filePath = null;
+    var activeLogo = $('#qr-preview-social-logo-container .active');
+    var fileInput = document.getElementById('qr-file-selector');
+
+   
+    activeLogo.on('click', (resetLogotype = false));
+    if (resetLogotype) {
+      drawQRBase(
+        params.logo,
+        params.link,
+        params.qrColor,
+        params.qrBackgroundColor,
+      );
+    } else {
+      if (activeLogo && activeLogo.length === 1) {
+        params.changeIfLogoUpload = false
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', activeLogo.attr('src'));
+        xhr.responseType = 'blob';
+        xhr.send();
+        xhr.addEventListener('load', function () {
+          var reader = new FileReader();
+          reader.readAsDataURL(xhr.response);
+          reader.addEventListener('loadend', function () {
+            params.logo = reader.result;
+            document
+              .querySelector('.upload-inner')
+              .classList.remove('upload-inner__active');
+            drawQRBase(
+              params.logo,
+              params.link,
+              params.qrColor,
+              params.qrBackgroundColor,
+            );
+            
+          });
+          
+        });
+       
+      } else {
+        filePath = fileInput.files[0];
+        if (filePath) {
+          params.changeIfLogoUpload =true
+          var reader = new FileReader();
+          reader.readAsDataURL(filePath);
+          reader.onload = function () {
+            var fileContent = reader.result;
+            logoUploadFile = fileContent;
+            params.logo = logoUploadFile;
+            addActiveLogo(logoUploadFile);
+            drawQRBase(
+              params.logo,
+              params.link,
+              params.qrColor,
+              params.qrBackgroundColor,
+            );
+          };
+        } else {
+          resetLogotype === false && removeLogoOnEntryPage === true
+            ? drawQRBase(
+                params.logo,
+                params.link,
+                params.qrColor,
+                params.qrBackgroundColor,
+              )
+              
+            : drawQRBase(
+                null,
+                params.link,
+                params.qrColor,
+                params.qrBackgroundColor,
+              );
+        }
+      }
+    }
+
+  }
+ 
+}
+
+
+
+//add border svg-image
+function svgConcate(paramFramesObj) {
+  var borderLogoWrapper = document.querySelector('.logo-border__wrappre');
+  var wrapper = document.querySelector('#testSVG');
+  var activeBackgroundData = $('.active-background').data();
+  var addSvgItem = document.querySelectorAll('#testSVG')[0].childNodes[1];
+  var imageSvgResize = document.querySelector('#testSVG>svg>g>image');
+
+  if (paramFramesObj.transparentBg) {
+    wrapper.setAttribute('style', `background:${'transparent'}`);
+  } else {
+    wrapper.setAttribute(
+      'style',
+      `background:${paramFramesObj.backgroundColor}`
+    );
+  }
+
+//clear svg on prev border for new generation
+  if (addSvgItem) {
+    addSvgItem.remove();
+  }
+
+  if (document.querySelectorAll('#testSVG')[0].childNodes[0]) {
+    document.querySelectorAll('#testSVG')[0].childNodes[0].remove();
+  }
+
+
+  
+  concateAndTransformSvg(paramFramesObj,wrapper)
+  
+
+  if (activeBackgroundData.gaName === 'no_image') {
+    cubePatternChange(paramFramesObj)
+  } else {
+    var childSVG = document.querySelector(`${paramFramesObj.gaName}`);
+    var cloneChildSVG = childSVG.cloneNode(true);
+    wrapper.appendChild(cloneChildSVG);
+  }
+
+  var fillValues = document.querySelectorAll(`${paramFramesObj.gaName}>g`);
+  fillValues.forEach((element) => {
+    element.style.fill = `${paramFramesObj.globalqrColor}`;
+  });
+
+  cubePatternChange(paramFramesObj)
+  
+  
+}
+
+
+
+function concateAndTransformSvg(paramFramesObj,wrapper){
+  var parrentSvg = document.querySelector('#qrcode svg')
+  var copyParrentSvg = parrentSvg.cloneNode(true)
+  wrapper.appendChild(copyParrentSvg);
+  var parentSVGAttribute = document.querySelectorAll('#testSVG>svg>rect');
+  var imageSvgResize = document.querySelector('#testSVG>svg>image');
+  parentSVGAttribute && (parentSVGAttribute.forEach(i=>{i.style.transform = `${paramFramesObj.transform}`}))
+  imageSvgResize && (imageSvgResize.style.transform =`${paramFramesObj.transform}`)
+  // var logoBorderitem = document.querySelector(`${paramFramesObj.logoBorder}`);
+  // var cloneBorderSVG = logoBorderitem.cloneNode(true);
+  //   wrapper.appendChild(cloneBorderSVG);
+}
+
+
+
+
+
+
+
+function cubePatternChange(paramFramesObj){
+
+
+}
+//add border svg-image params
+function drawQR() {
+  // preloaderQrCode.style.opacity='1'
+
+  if (globalSettings !== null) {
+    var qrFrameGaName = document.querySelector(
+      `img[data-ga-name="${restoredSession.qrFrame.gaName || params.qrFrame.gaName}"]`
+    );
+    var qrFrameLogoBorder = document.querySelector(
+      `.logo-border[data-border="${restoredSession.qrFrame.logoBorder || params.qrFrame.logoBorder}"]`
+    );
+    params.logo = restoredSession.logo;
+    params.link = restoredSession.link;
+    document.getElementById('qr-color').value = restoredSession.qrColor || params.qrColor;
+    document.getElementById('qr-background-color').value =
+      restoredSession.qrBackgroundColor || params.qrBackgroundColor;
+    document.querySelector('#transparentBg').checked =
+      restoredSession.transparentBg;
+      document.querySelector(`.qrStyleSquare[data-qrStyleSquare='${restoredSession.qrStyleSquare||'square'}']`).click()
+      document.querySelector(`.cube-pattern[data-cube='${restoredSession.qrStyle || params.qrStyle}']`).click()
+    
+    svgConcate(restoredSession.qrFrame);
+    qrFrameGaName.click();
+    // qrFrameLogoBorder.click();
+    globalSettings = null;
+  } else {
+    var logoBorder = $('.logo-border--active').data().border;
+    var transparentToggle = document.querySelector('#transparentBg').checked;
+    var dataParams = $('.active-background').data();
+    var transformValue;
+    var transformBorderValue;
+    var globalqrColor = document.getElementById('qr-color').value;
+    var bgColor = document.getElementById('qr-background-color').value;
+    var transformViewBox = document.querySelector('.background-image-selector.active-background')
+    var cubePattern = document.querySelector('.cube-pattern.cube-pattern-active').dataset.qrStyle
+      transformValue = dataParams.transform;
+      transformBorderValue = dataParams.border;
+  
+
+    // qrFrame params
+    params.transparentBg = transparentToggle;
+    params.qrFrame = {
+      gaName: dataParams.gaName,
+      transform: transformValue,
+      globalqrColor: globalqrColor,
+      border: transformBorderValue,
+      backgroundColor: bgColor,
+      logoBorder: logoBorder,
+      transparentBg: params.transparentBg,
+      viewBox:transformViewBox.dataset.viewBox,
+      cube:cubePattern,
+    };
+    svgConcate(params.qrFrame);
+  }
+  // setTimeout(()=>{preloaderQrCode.style.opacity='0'},500)
+}
+
+function saveVisualisation() {
+  var saveQrPreloader = document.querySelector('.saveQrPreloader')
+  if (!(!!document.getElementById('data-user-integration'))){
+    saveQrPreloader.style.opacity = '1'
+  }
+  var name = $('input[name=entry_id]').val();
+  var SVGDomElement = document.querySelector('#testSVG');
+  SVGDomElement.setAttribute('height','300')
+  SVGDomElement.setAttribute('width','300')
+
+          
+  params.qrFrame.logoBorder=".no-border";
+  // params.logo = null;
+  params.changeIfLogoUpload = false
+          if (typeof window.XMLSerializer != 'undefined') {
+            var svgData = new XMLSerializer().serializeToString(SVGDomElement);
+          } else if (typeof SVGDomElement.xml != 'undefined') {
+            var svgData = SVGDomElement.xml;
+          }
+          var canvas = document.createElement('canvas');
+         
+          canvas.width = 300;
+          canvas.height = 300;
+          var img = document.createElement('img');
+          var ctx = canvas.getContext('2d');
+          img.setAttribute(
+            'src',
+            'data:image/svg+xml;base64,' +
+            btoa(unescape(encodeURIComponent(svgData)))
+        );
+       
+          img.onload = function () {
+            ctx.drawImage(img, 0, 0);
+            var imgsrc = canvas.toDataURL('image/png')
+            // params.logo = null;
+          setTimeout(function(){
+            $.ajax({
+              async: true,
+              url: '/qrvisualization/save',
+              method: 'POST',
+              data: { name: name, image: imgsrc, description: JSON.stringify(params) },
+            }).done(function (data) {
+              SVGDomElement.removeAttribute('height')
+              SVGDomElement.removeAttribute('width')
+  
+            });
+          },0)
+          
+          setTimeout(()=>{saveQrPreloader.style.opacity = '0'},1500)
+          return true;
+        }
+        
+    };
+        
+  
+
+$('.background-image-selector').click(function () {
+  $('.background-image-selector').removeClass('active-background');
+  qrBackgroundName = $(this).data('ga-name');
+  $(this).addClass('active-background');
+  drawQR();
+  $('#close1').click();
+});
+$('.logo-border').click(function () {
+  $('.logo-border').removeClass('logo-border--active');
+  qrBackgroundName = $(this).data('border');
+  $(this).addClass('logo-border--active');
+  $('#close1').click();
+});
+$('.qrStyleSquare').click(function () {
+  $('.qrStyleSquare').removeClass('qrStyleSquare-active');
+  params.qrStyleSquare = $(this).data('qrstylesquare');
+  $(this).addClass('qrStyleSquare-active');
+  generateQRCode();
+  $('#close1').click();
+});
+$('.qrStyleDot').click(function () {
+  $('.qrStyleDot').removeClass('qrStyleDot-active');
+  params.qrStyleDot = $(this).data('qrstyledot');
+  $(this).addClass('qrStyleDot-active');
+  generateQRCode();
+  $('#close1').click();
+});
+$('.cube-pattern').click(function () {
+  $('.cube-pattern').removeClass('cube-pattern-active');
+  params.qrStyle = $(this).data('cube');
+  $(this).addClass('cube-pattern-active');
+  generateQRCode();
+  $('#close1').click();
+});
+
+function onlyInitialQrCode() {
+  if (changeResult) {
+    saveVisualisation();
+      changeResult = false;
+  }
+  else{
+     window.document.querySelector('.active-background').click();
+  }
+}
+
+var myTabs = document.querySelectorAll('.checkbox-item');
+for (i = 0; i < myTabs.length; i++) {
+  myTabs[i].addEventListener('click', function (e) {
+    myTabs.forEach((i) => {
+      if (i.classList === 'checkbox-item__active') {
+      } else {
+        i.classList.remove('checkbox-item__active');
+      }
+    });
+    e.target.classList.add('checkbox-item__active');
+  });
+}
+
+document
+  .getElementById('download-qr-btn')
+  .addEventListener('click', function () {
+    var formatVariable = document.querySelector('.checkbox-item__active').dataset.label;
+    var entryHash = document.querySelector('input[name=entry_hash]').value
+      if(document.querySelector('#qrcode').dataset.link !== undefined){
+        if (formatVariable === 'svg') {
+          //download button svg image
+          saveVisualisation();
+          const SVGDomElement = document.querySelector('#testSVG');
+          SVGDomElement.removeAttribute('height')
+          SVGDomElement.removeAttribute('width')
+          SVGDomElement.style.maxWidth='inherit'
+          SVGDomElement.style.maxHeight='inherit'
+          SVGDomElement.setAttribute('data-reuse',`${entryHash}`)
+          var serializedSVG = new XMLSerializer().serializeToString(SVGDomElement);
+          var base64Data = window.btoa(serializedSVG);
+          var url = `data:image/svg+xml;base64,${base64Data}`;
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'qrcode_' + $('input[name=entry_id]').val() + '_.svg';
+          document.body.appendChild(a);
+          a.click();
+          $('#no-qr-modal').modal('toggle');
+          document.body.removeChild(a);
+        }
+        if (formatVariable === 'png') {
+          saveVisualisation();
+
+          if(navigator.userAgent.indexOf("Safari") != -1){
+            var svg = document.querySelector('#testSVG');
+            ReImg.fromSvg(svg).downloadPng(`qrcode_${$('input[name=entry_id]').val()}_.png`);
+          }else{
+            var canvas = document.createElement('canvas');
+            var svg = document.querySelector('#testSVG');
+            canvas.width = 1500;
+           canvas.height = 1500;
+          //  svg.style.position ='absolute'
+          //  svg.setAttribute('height','1500')
+          //  svg.setAttribute('width','1500')
+          //  svg.style.maxWidth='300px'
+          //  svg.style.maxHeight='300px'
+           var ctx = canvas.getContext('2d');
+           var data = (new XMLSerializer()).serializeToString(svg);
+           var DOMURL = window.URL || window.webkitURL || window;
+          
+           var img = new Image();
+           var svgBlob = new Blob([data], {type: 'image/svg+xml;charset=utf-8'});
+           var url = DOMURL.createObjectURL(svgBlob);
+          
+           img.onload = function () {
+             ctx.drawImage(img, 0, 0,1500,1500);
+             DOMURL.revokeObjectURL(url);
+             var imgURI = canvas
+                 .toDataURL('image/png')
+                 .replace('image/png', 'image/octet-stream');
+          
+             triggerDownload(imgURI);
+           };
+          
+           img.src = url;
+          }
+
+         
+          $('#no-qr-modal').modal('toggle');
+        }
+      }
+    
+  });
+
+  if (window.location.toString().includes('/entry/') && !window.location.toString().includes('/entry/new') && restoredSession.changeIfLogoUpload) {
+    logoUploadFile = restoredSession.logo
+}
+
+
+document
+  .querySelector('#UploadlogoWrapper')
+  .addEventListener('click', function () {
+    addActiveLogo(logoUploadFile)
+    drawQRBase(logoUploadFile, params.link, params.qrColor, params.qrBackgroundColor);
+    document
+      .querySelector('.upload-inner')
+      .classList.add('upload-inner__active');
+      var z = document.querySelector('.qr-preview-social-logo.active')
+      var n = document.querySelector('.no-logo')
+      z!==null && z.classList.remove('active')
+      n!==null && n.classList.remove('no-logo__active')
+
+    });
+
+ 
+
+function addActiveLogo(logo) {
+  let removeUploadlogo = document.querySelector('.col-4.setUploadlogo');
+  var removeUploadImg = document.querySelector('.upload-inner');
+  var resetColClass = document.querySelector('#qr-file-selector__wrapper');
+  removeUploadlogo.style.display = 'block';
+  removeUploadImg.setAttribute('src', `${logo}`);
+  removeUploadImg.classList.add('upload-inner__active');
+  resetColClass.classList.remove('col-12');
+  resetColClass.classList.add('col-8');
+      removeLogoOnEntryPage = true;
+      resetLogotype = true;
+}
+
+let timerForCanvas = setTimeout(function(){
+ 
+  if(restoredSession && restoredSession.isOld!==false && window.location.toString().includes('/entry/') && !window.location.toString().includes('/entry/new')){
+    window.document.querySelector('.active-background').click();
+    params.qrColor = document.getElementById('qr-color').value;
+    params.qrBackgroundColor =  document.getElementById('qr-background-color').value;
+    params.transparentBg = document.querySelector('#transparentBg').checked;
+    saveVisualisation();
+  }
+},0)
+
+function chnageLogoSize(){
+ params.logoSize = document.querySelector('#changeLogoSize').value 
+ 
+}
+
+function chnageLogoMargin(){
+  params.logoMargin = document.querySelector('#changeLogoMargin').value 
+
+ }
+ function chnageLogoBackground(){
+  params.logoBackground = document.querySelector('#logoBackground').checked 
+ }
+
+function a(){
+  chnageLogoSize()
+  chnageLogoMargin()
+  chnageLogoBackground()
+  generateQRCode();
+}
+
+function triggerDownload (imgURI) {
+  var evt = new MouseEvent('click', {
+    view: window,
+    bubbles: false,
+    cancelable: true
+  });
+
+  var a = document.createElement('a');
+  a.setAttribute('download', `qrcode_${$('input[name=entry_id]').val()}_.png`);
+  a.setAttribute('href', imgURI);
+  a.setAttribute('target', '_blank');
+  a.dispatchEvent(evt);
+}
+if(window.location.href.indexOf("entry") > -1) {
+  setTimeout(function (){
+    drawQR()
+  }, 3000);
+}

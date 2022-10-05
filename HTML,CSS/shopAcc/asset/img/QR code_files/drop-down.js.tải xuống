@@ -1,0 +1,31 @@
+if (window.location.toString().includes('/instructions/')){
+    setPredefined();
+    changeBtnText();
+
+    $( "#showAll" ).click(function() {
+        $('#qr-type-selector').toggleClass('d-none');
+    });
+
+
+
+        $('#qr-type-selector a').click(function () {
+                $('#qr-type-selector').toggleClass('d-none');
+                setTimeout(changeBtnText , 1);
+        })
+
+
+    function changeBtnText()
+    {
+        $( "#showAll" ).text($('#qr-type-selector .active').text());
+    }
+
+    function setPredefined()
+    {
+        $(document).ready(function() {
+            let browserUrl = $("#predefinedType").val();
+            let hash = browserUrl.substring(browserUrl.indexOf('#'));
+            $('a[href="' + hash + '"]').trigger('click');
+            $('#qr-type-selector').addClass('d-none');
+        });
+    }
+}

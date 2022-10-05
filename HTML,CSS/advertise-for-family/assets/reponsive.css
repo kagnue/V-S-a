@@ -1,0 +1,90 @@
+/* mobile */
+@media (max-width:746px) {
+    #nav > li:hover > .tc{
+        background-color: black !important;
+    }
+    #nav li a {
+        display: block;
+    }
+    #nav > li{
+        display: block;
+    }
+
+    #header{
+        overflow: hidden;    
+    }
+    #header .ti-search{
+        display: none;
+    }
+    .menu-btn{
+        float: right;
+        color: rgb(255, 255, 255);
+        display: block;
+        width: 46px;
+        height: 46px;
+        text-align: center;
+        line-height: 46px;
+        font-size: 20px;
+    }
+    .menu-btn:hover{
+        background-color: rgb(179, 179, 179);
+        color: rgb(0, 0, 0);
+    }
+    #nav .subnav{
+        position:relative ;
+        background-color: rgb(72, 72, 72);
+        padding-left:12px ;
+        
+    }
+    #nav li a {
+        border-bottom: 2px rgb(255, 255, 255) ;
+    }
+    #nav .subnav a{
+        color: white;
+        
+    }
+    .column-thir{
+        width: 100%;
+        padding-bottom: 16px;
+    }
+    #content .member-name{
+        padding-top: 16px;
+        margin-bottom: 8px;
+    }
+    .column-half{
+        width: 100%;
+        padding: 8px 0;
+    }
+    .contact-message{
+        padding: 8px 0;
+        
+    }
+    
+}
+@media(max-width:1023px){
+
+    .btn{
+        padding: 15px 16px;
+    }
+    .send{
+        padding: 12px 16px;
+    }
+    .send:hover{
+        padding: 12px 16px;
+    }
+}
+/* tablet */
+@media (min-width:746px) and (max-width:1024px) {
+    .contact-name,
+    .contact-email,
+    .contact-message{
+      padding: 10px 0;
+   }
+   
+}
+/* pc */
+@media(min-width:1024px){
+    .pc{
+        display:block
+    }
+}

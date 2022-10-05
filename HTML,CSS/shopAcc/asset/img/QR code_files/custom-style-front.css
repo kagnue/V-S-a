@@ -1,0 +1,194 @@
+.disabled {
+    pointer-events: none;
+}
+
+.img-wrap {
+    position: relative;
+    display: inline-block;
+    font-size: 0;
+}
+
+.text-in-block{
+    font-size: 14px;
+}
+
+
+.img-wrap .close {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 100;
+    background-color: #FFF;
+    padding: 5px 2px 2px;
+    color: #000;
+    font-weight: bold;
+    cursor: pointer;
+    opacity: .2;
+    opacity: .2;
+    text-align: center;
+    font-size: 22px;
+    line-height: 10px;
+    border-radius: 50%;
+}
+
+.img-wrap:hover .close {
+    opacity: 1;
+}
+
+/*block in templates/front/modules/qr-creator/create-qr-code.twig*/
+.font-style-mapBlock {
+    font-family: Roboto, sans-serif;
+    font-style: normal;
+    font-weight: bold;
+    font-size: 20px;
+    line-height: 155.69%;
+
+    /* or 31px */
+
+    /* qr-blk */
+    color: #3E4857;
+}
+
+.font-style-main-h4 {
+    font-family: Roboto, sans-serif;
+    font-style: normal;
+    font-weight: bold;
+    font-size: 18px;
+    line-height: 21px;
+
+    /* identical to box height */
+    text-align: center;
+
+    color: #3C4858;
+}
+
+.font-style-main-p {
+    font-family: Roboto, sans-serif;
+    font-style: normal;
+    font-weight: normal;
+    font-size: 13px;
+    line-height: 155.69%;
+
+    /* or 20px */
+    text-align: center;
+
+    /* qr-blk */
+    color: #3E4857;
+}
+
+.btn-font-style-main {
+    font-family: Roboto, sans-serif;
+    font-style: normal;
+    font-weight: bold;
+    font-size: 16px;
+    line-height: 19px;
+
+    /* identical to box height */
+    text-align: center;
+    text-transform: uppercase;
+
+    /* wh */
+    color: #FFFFFF;
+}
+
+
+/*end*/
+
+.margin-all {
+    margin-top: 90px;
+}
+
+.img-command{
+
+
+
+}
+
+.buton-style-donate{
+    background-color: #005BBB;width: 340px;height: 54px;font-size: 16px;font-weight: bold;
+}
+
+.emblem{
+    width: 112px; height: 189px;
+}
+
+.flag {
+    background-image: url('/static/pages/donate/Flag.png');
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+}
+
+.img-custom-main-donate {
+    background: url("/static/pages/donate/stand.png");
+    width: 304px;
+    height: 310px;
+    position: relative;
+    top: -87px;
+    left: -162px;
+    float: right;
+}
+.donate-padding {
+    padding-top: 60px;
+}
+@media (max-width: 1200px) {
+    .img-custom-main-donate {
+        background: none;
+        width: 0px;
+        height: 0px;
+        position: relative;
+        top: 0px;
+        left: 0px;
+    }
+
+
+}
+
+@media (max-width: 991px) {
+    .margin-all {
+        margin-top: 60px;
+    }
+    .donate-padding {
+        padding-top: 34px;
+    }
+}
+
+@media (min-width: 1199px) {
+    .margin-all {
+        margin-top: 70px;
+    }
+}
+
+
+@media (max-width: 767px) {
+    .emblem{
+        width: 63px;
+        height: 109px;
+    }
+    .buton-style-donate{
+        background-color: #005BBB;width: 250px;height: 54px;font-size: 16px;font-weight: bold;
+    }
+
+    .text-in-block{
+        font-size: 12px;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
